@@ -3,19 +3,20 @@ require('dotenv').config();
 const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
-  // Ưu tiên lấy biến môi trường từ Render, nếu không có sẽ dùng giá trị mặc định
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_DATABASE || 'kinhdoamthuc',
-  // TiDB dùng cổng 4000, localhost thường dùng 3306
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
+  // Lấy thông tin từ Environment Variables trên Render
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  // TiDB Cloud dùng cổng 4000
+  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 4000,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  // BẮT BUỘC có SSL để kết nối TiDB Cloud thành công
+  // Cấu hình TLS bắt buộc theo tài liệu TiDB Cloud
   ssl: {
-    rejectUnauthorized: false
+    // Cho phép kết nối bảo mật mà không cần tải file chứng chỉ CA
+    rejectUnauthorized: false 
   }
 });
 
@@ -25,8 +26,8 @@ async function testConnection() {
     console.log('✅ Connected to MySQL');
     connection.release();
   } catch (err) {
+    // In ra lỗi cụ thể nếu kết nối thất bại
     console.error('❌ MySQL connection failed:', err.message);
-    // Không dùng process.exit(1) để tránh server sập khi đang deploy
   }
 }
 
